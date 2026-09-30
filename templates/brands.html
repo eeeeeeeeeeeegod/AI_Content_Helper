@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        品牌管理
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <div class="history-header">
+
+        <div>
+
+            <a
+                href="{{ url_for('index') }}"
+                class="back-link"
+            >
+                ← 返回首頁
+            </a>
+
+            <h1>
+                🏷️ 品牌管理
+            </h1>
+
+        </div>
+
+
+        <a
+            href="{{ url_for('create_brand') }}"
+            class="back-button"
+        >
+            ＋ 新增品牌
+        </a>
+
+    </div>
+
+
+    {% if brands %}
+
+
+        <div class="brand-grid">
+
+
+            {% for brand in brands %}
+
+
+                <div class="brand-card">
+
+
+                    <h2>
+                        {{ brand.name }}
+                    </h2>
+
+
+                    {% if brand.description %}
+
+                        <p>
+                            {{ brand.description }}
+                        </p>
+
+                    {% endif %}
+
+
+                    {% if brand.target_audience %}
+
+                        <div class="brand-field">
+
+                            <strong>
+                                目標客群
+                            </strong>
+
+                            <p>
+                                {{ brand.target_audience }}
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+
+                    {% if brand.brand_tone %}
+
+                        <div class="brand-field">
+
+                            <strong>
+                                品牌語氣
+                            </strong>
+
+                            <p>
+                                {{ brand.brand_tone }}
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <div class="brand-actions">
+
+
+                        <a
+                            href="{{ url_for(
+                                'edit_brand',
+                                brand_id=brand.id
+                            ) }}"
+                            class="edit-brand-button"
+                        >
+                            ✏️ 編輯
+                        </a>
+
+                        <a
+                            href="{{ url_for(
+                                'brand_knowledge',
+                                brand_id=brand.id
+                            ) }}"
+                            class="edit-brand-button"
+                        >
+                            📚 知識庫
+                        </a>
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'delete_brand',
+                                brand_id=brand.id
+                            ) }}"
+                            onsubmit="
+                                return confirm(
+                                    '確定要刪除這個品牌嗎？'
+                                );
+                            "
+                        >
+
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="{{ csrf_token() }}"
+                            >
+
+                            <button
+                                type="submit"
+                                class="delete-brand-button"
+                            >
+                                🗑️ 刪除
+                            </button>
+
+                        </form>
+
+
+                    </div>
+
+
+                </div>
+
+
+            {% endfor %}
+
+
+        </div>
+
+
+    {% else %}
+
+
+        <div class="empty-history">
+
+            <h2>
+                尚未建立品牌
+            </h2>
+
+            <p>
+                建立第一個品牌資料，
+                之後 AI 就能逐步使用品牌資訊。
+            </p>
+
+        </div>
+
+
+    {% endif %}
+
+
+</div>
+
+
+</body>
+
+</html>

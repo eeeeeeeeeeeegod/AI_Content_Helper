@@ -1,0 +1,12 @@
+Flask
+Flask-SQLAlchemy==3.1.1
+Flask-Login
+Flask-Migrate
+Flask-WTF
+Flask-Limiter
+openai
+python-dotenv
+pypdf
+numpy
+gunicorn
+psycopg[binary]

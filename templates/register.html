@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        註冊 - AI 智慧圖文小幫手
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <h1>
+        ✨ 建立帳號
+    </h1>
+
+
+    <p class="description">
+        註冊 AI 智慧圖文小幫手
+    </p>
+
+
+    {% if error %}
+
+        <div class="error">
+
+            {{ error }}
+
+        </div>
+
+    {% endif %}
+
+
+    <form method="POST">
+
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token() }}"
+        >
+
+        <label>
+            Email
+        </label>
+
+        <input
+            type="email"
+            name="email"
+            placeholder="請輸入 Email"
+            required
+            maxlength="255"
+        >
+
+
+        <label>
+            密碼
+        </label>
+
+        <input
+            type="password"
+            name="password"
+            placeholder="至少 12 個字元"
+            minlength="12"
+            required
+        >
+
+
+        <label>
+            確認密碼
+        </label>
+
+        <input
+            type="password"
+            name="confirm_password"
+            placeholder="再次輸入密碼"
+            required
+        >
+
+
+        <button type="submit">
+
+            建立帳號
+
+        </button>
+
+
+    </form>
+
+
+    <p class="auth-footer">
+
+        已經有帳號了嗎？
+
+        <a href="{{ url_for('login') }}">
+
+            前往登入
+
+        </a>
+
+    </p>
+
+
+</div>
+
+
+</body>
+
+</html>

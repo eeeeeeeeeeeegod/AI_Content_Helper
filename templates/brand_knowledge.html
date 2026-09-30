@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {{ brand.name }} 知識庫
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <a
+        href="{{ url_for('brands') }}"
+        class="back-link"
+    >
+        ← 返回品牌管理
+    </a>
+
+
+    <h1>
+        📚 {{ brand.name }} 品牌知識庫
+    </h1>
+
+
+    <p class="description">
+
+        上傳品牌 PDF 或 TXT，
+        系統會建立 RAG 向量知識庫。
+
+    </p>
+
+
+    <!-- ========================= -->
+    <!-- 上傳 -->
+    <!-- ========================= -->
+
+    <form
+        method="POST"
+        action="{{ url_for(
+            'upload_brand_document',
+            brand_id=brand.id
+        ) }}"
+        enctype="multipart/form-data"
+    >
+
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token() }}"
+        >
+
+        <label>
+            品牌文件
+        </label>
+
+
+        <input
+            type="file"
+            name="document"
+            accept=".pdf,.txt"
+            required
+        >
+
+
+        <button type="submit">
+
+            📤 上傳並建立知識庫
+
+        </button>
+
+
+    </form>
+
+
+
+    <!-- ========================= -->
+    <!-- 文件 -->
+    <!-- ========================= -->
+
+    <div class="detail-section">
+
+
+        <h2>
+            已上傳文件
+        </h2>
+
+
+        {% if documents %}
+
+
+            {% for document in documents %}
+
+
+                <div class="knowledge-document">
+
+                    <strong>
+
+                        {{ document.filename }}
+
+                    </strong>
+
+
+                    <span>
+
+                        {{ document.created_at.strftime(
+                            "%Y-%m-%d %H:%M"
+                        ) }}
+
+                    </span>
+
+                </div>
+
+
+            {% endfor %}
+
+
+        {% else %}
+
+
+            <p>
+                尚未上傳任何品牌文件。
+            </p>
+
+
+        {% endif %}
+
+
+    </div>
+
+
+</div>
+
+
+</body>
+
+</html>

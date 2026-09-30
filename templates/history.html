@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        歷史作品
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <div class="history-header">
+
+        <h1>
+            🗂️ 歷史作品
+        </h1>
+
+        <a
+            href="{{ url_for('index') }}"
+            class="back-button"
+        >
+            ＋ 建立新作品
+        </a>
+
+    </div>
+
+
+    {% if projects %}
+
+
+        <div class="project-grid">
+
+
+            {% for project in projects %}
+
+
+                <div class="project-card">
+
+
+                    {% if project.image_filename %}
+
+                        <img
+                            src="{{ url_for('private_project_image', project_id=project.id) }}"
+                            class="project-image"
+                        >
+
+                    {% endif %}
+
+
+                    <div class="project-content">
+
+
+                        <h2>
+                            {{ project.title }}
+                        </h2>
+
+
+                        <p class="project-topic">
+
+                            {{ project.topic }}
+
+                        </p>
+
+
+                        <div class="project-meta">
+
+                            <span>
+                                {{ project.platform }}
+                            </span>
+
+                            <span>
+                                {{ project.image_size }}
+                            </span>
+
+                        </div>
+
+
+                        <p class="project-date">
+
+                            {{ project.created_at.strftime(
+                                "%Y-%m-%d %H:%M"
+                            ) }}
+
+                        </p>
+
+                        <a
+                            href="{{ url_for(
+                                'project_detail',
+                                project_id=project.id
+                            ) }}"
+                            class="view-project-button"
+                        >
+                            查看完整作品 →
+                        </a>
+
+                    </div>
+
+
+                </div>
+
+
+            {% endfor %}
+
+
+        </div>
+
+
+    {% else %}
+
+
+        <div class="empty-history">
+
+            <h2>
+                目前還沒有作品
+            </h2>
+
+            <p>
+                建立第一個 AI 圖文作品吧！
+            </p>
+
+        </div>
+
+
+    {% endif %}
+
+
+</div>
+
+
+</body>
+
+</html>

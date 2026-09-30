@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        品牌資料
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <a
+        href="{{ url_for('brands') }}"
+        class="back-link"
+    >
+        ← 返回品牌管理
+    </a>
+
+
+    {% if brand %}
+
+        <h1>
+            ✏️ 編輯品牌
+        </h1>
+
+    {% else %}
+
+        <h1>
+            ＋ 新增品牌
+        </h1>
+
+    {% endif %}
+
+
+    {% if error %}
+
+        <div class="error">
+            {{ error }}
+        </div>
+
+    {% endif %}
+
+
+    <form method="POST">
+
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token() }}"
+        >
+
+        <label>
+            品牌名稱 *
+        </label>
+
+        <input
+            type="text"
+            name="name"
+            required
+            value="{{ brand.name if brand else '' }}"
+            placeholder="例如：Moon Coffee"
+        >
+
+
+        <label>
+            品牌介紹
+        </label>
+
+        <textarea
+            name="description"
+            placeholder="品牌是做什麼的？主要定位是什麼？"
+        >{{ brand.description if brand else '' }}</textarea>
+
+
+        <label>
+            目標客群
+        </label>
+
+        <textarea
+            name="target_audience"
+            placeholder="例如：20～35 歲學生、上班族"
+        >{{ brand.target_audience if brand else '' }}</textarea>
+
+
+        <label>
+            品牌語氣
+        </label>
+
+        <input
+            type="text"
+            name="brand_tone"
+            value="{{ brand.brand_tone if brand else '' }}"
+            placeholder="例如：專業、簡潔、溫暖、有質感"
+        >
+
+
+        <label>
+            品牌特色
+        </label>
+
+        <textarea
+            name="brand_features"
+            placeholder="例如：木質空間、精品咖啡、安靜工作環境"
+        >{{ brand.brand_features if brand else '' }}</textarea>
+
+
+        <label>
+            主要產品 / 服務
+        </label>
+
+        <textarea
+            name="products_services"
+            placeholder="例如：單品咖啡、拿鐵、甜點、共享工作空間"
+        >{{ brand.products_services if brand else '' }}</textarea>
+
+
+        <label>
+            禁用詞
+        </label>
+
+        <textarea
+            name="banned_words"
+            placeholder="例如：最好、第一、保證有效"
+        >{{ brand.banned_words if brand else '' }}</textarea>
+
+
+        <label>
+            補充說明
+        </label>
+
+        <textarea
+            name="notes"
+            placeholder="其他希望 AI 知道的品牌規則"
+        >{{ brand.notes if brand else '' }}</textarea>
+
+
+        <button type="submit">
+
+            {% if brand %}
+
+                💾 儲存修改
+
+            {% else %}
+
+                ＋ 建立品牌
+
+            {% endif %}
+
+        </button>
+
+
+    </form>
+
+
+</div>
+
+
+</body>
+
+</html>

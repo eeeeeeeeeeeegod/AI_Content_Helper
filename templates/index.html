@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        AI 智慧圖文小幫手
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <h1>
+        ✨ AI 智慧圖文小幫手
+    </h1>
+
+    <!-- 使用者帳號資訊 -->
+    
+    <div class="user-info">
+    
+        <span>
+            目前登入：
+            {{ current_user.email }}
+        </span>
+    
+        <form
+            method="POST"
+            action="{{ url_for('logout') }}"
+        >
+        
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+        
+            <button
+                type="submit"
+                class="logout-button"
+            >
+                登出
+            </button>
+        
+        </form>
+    
+    </div>
+
+    <p class="description">
+        輸入主題，讓 AI 幫你產生社群文案與圖片企劃。
+    </p>
+
+
+    <a
+        href="{{ url_for('history') }}"
+        class="history-link"
+    >
+        🗂️ 查看歷史作品
+    </a>
+    
+    <a
+        href="{{ url_for('brands') }}"
+        class="history-link"
+    >
+        🏷️ 品牌管理
+    </a>
+
+    <form
+        method="POST"
+        id="generate-form"
+    >
+
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token() }}"
+        >
+
+        <label>
+            品牌
+        </label>
+        
+        <select name="brand_id">
+        
+            <option value="">
+                不使用品牌資料
+            </option>
+        
+        
+            {% for brand in brands %}
+        
+                <option
+                    value="{{ brand.id }}"
+                >
+        
+                    {{ brand.name }}
+        
+                </option>
+        
+            {% endfor %}
+        
+        </select>
+
+        <label>
+            主題
+        </label>
+
+        <input
+            type="text"
+            name="topic"
+            placeholder="例如：夏季健身房學生優惠"
+            required
+        >
+
+
+        <label>
+            平台
+        </label>
+
+        <select name="platform">
+
+            <option value="Instagram">
+                Instagram
+            </option>
+
+            <option value="Facebook">
+                Facebook
+            </option>
+
+            <option value="Threads">
+                Threads
+            </option>
+
+            <option value="X">
+                X
+            </option>
+
+        </select>
+
+
+        <label>
+            文案風格
+        </label>
+
+        <select name="tone">
+
+            <option value="活潑">
+                活潑
+            </option>
+
+            <option value="專業">
+                專業
+            </option>
+
+            <option value="幽默">
+                幽默
+            </option>
+
+            <option value="簡潔">
+                簡潔
+            </option>
+
+            <option value="高級感">
+                高級感
+            </option>
+
+        </select>
+
+
+        <label>
+            其他需求
+        </label>
+
+        <textarea
+            name="extra_requirement"
+            placeholder="例如：不要提價格，強調學生族群與免費體驗"
+        ></textarea>
+
+
+
+        <label>
+            圖片比例
+        </label>
+        
+        <select name="image_ratio">
+        
+            <option value="auto">
+                ✨ 依平台自動選擇
+            </option>
+        
+            <option value="square">
+                1:1 方形
+            </option>
+        
+            <option value="portrait">
+                2:3 直式
+            </option>
+        
+            <option value="landscape">
+                3:2 橫式
+            </option>
+        
+        </select>
+        
+        <label>
+            圖片風格
+        </label>
+        
+        <select name="image_style">
+        
+            <option value="commercial">
+                📸 商業攝影
+            </option>
+        
+            <option value="lifestyle">
+                ☀️ 自然生活感
+            </option>
+        
+            <option value="minimal">
+                ⚪ 極簡風格
+            </option>
+        
+            <option value="cinematic">
+                🎬 電影感
+            </option>
+        
+            <option value="luxury">
+                💎 高級品牌
+            </option>
+        
+            <option value="illustration">
+                🎨 數位插畫
+            </option>
+        
+        </select>
+        
+        <label>
+            圖片品質
+        </label>
+        
+        <select name="image_quality">
+        
+            <option value="low">
+                ⚡ 草稿 — 快速、省成本
+            </option>
+        
+            <option value="medium">
+                ⭐ 標準 — 建議
+            </option>
+        
+            <option value="high">
+                💎 高品質
+            </option>
+        
+        </select>
+        
+        <button type="submit">
+
+            ✨ AI 生成內容
+
+        </button>
+
+    </form>
+
+
+    {% if error %}
+
+        <div class="error">
+
+            {{ error }}
+
+        </div>
+
+    {% endif %}
+
+
+
+    {% if result %}
+
+
+        <div class="result">
+
+
+            <h2>
+                AI 生成結果
+            </h2>
+
+
+            <div class="result-item">
+
+                <h3>
+                    📌 標題
+                </h3>
+
+                <p>
+                    {{ result.title }}
+                </p>
+
+            </div>
+
+
+            <div class="result-item">
+
+                <h3>
+                    ✍️ 文案
+                </h3>
+
+                <p class="caption">
+                    {{ result.caption }}
+                </p>
+
+            </div>
+
+
+            <div class="result-item">
+
+                <h3>
+                    🎯 CTA
+                </h3>
+
+                <p>
+                    {{ result.cta }}
+                </p>
+
+            </div>
+
+
+            <div class="result-item">
+
+                <h3>
+                    #️⃣ Hashtag
+                </h3>
+
+                <p>
+
+                    {% for hashtag in result.hashtags %}
+
+                        {{ hashtag }}
+
+                    {% endfor %}
+
+                </p>
+
+            </div>
+
+
+            <details class="debug-info">
+            
+                <summary>
+                    查看 AI 圖片 Prompt
+                </summary>
+            
+                <p>
+                    {{ result.image_prompt }}
+                </p>
+            
+            </details>
+    {% if result.image_url %}
+
+<div class="result-item image-result">
+
+    <h3>
+        🖼️ AI 生成圖片
+    </h3>
+
+    <img
+        src="{{ result.image_url }}"
+        alt="AI 生成圖片"
+        class="generated-image"
+    >
+
+    <div class="image-info">
+
+        <span>
+            {{ result.image_size }}
+        </span>
+
+        <span>
+            {{ result.image_quality }}
+        </span>
+
+    </div>
+
+</div>
+
+{% endif %}
+        </div>
+
+
+    {% endif %}
+
+
+</div>
+
+<div
+    id="loading-overlay"
+    class="loading-overlay"
+>
+
+    <div class="loading-box">
+
+        <div class="spinner"></div>
+
+        <h2>
+            AI 正在創作中
+        </h2>
+
+        <p>
+            正在產生文案與圖片...
+        </p>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const form =
+    document.getElementById(
+        "generate-form"
+    );
+
+const loading =
+    document.getElementById(
+        "loading-overlay"
+    );
+
+
+form.addEventListener(
+    "submit",
+
+    function () {
+
+        loading.style.display =
+            "flex";
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>

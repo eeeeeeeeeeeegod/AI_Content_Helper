@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+
+instance/
+
+.vscode/
+.idea/
+
+migrations_empty_backup/

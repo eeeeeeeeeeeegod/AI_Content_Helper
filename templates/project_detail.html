@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {{ project.title }}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <!-- ========================= -->
+    <!-- 頂部導航 -->
+    <!-- ========================= -->
+
+    <div class="detail-header">
+
+        <a
+            href="{{ url_for('history') }}"
+            class="back-link"
+        >
+            ← 返回歷史作品
+        </a>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- 標題 -->
+    <!-- ========================= -->
+
+    <h1>
+        {{ project.title }}
+    </h1>
+
+
+    <div class="detail-meta">
+
+        <span>
+            {{ project.platform }}
+        </span>
+
+        <span>
+            {{ project.tone }}
+        </span>
+
+        <span>
+            {{ project.image_size }}
+        </span>
+
+        <span>
+            {{ project.image_quality }}
+        </span>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- AI 圖片 -->
+    <!-- ========================= -->
+
+    {% if project.image_filename %}
+
+        <div class="detail-section">
+
+            <h2>
+                🖼️ AI 圖片
+            </h2>
+
+            <img
+                src="{{ url_for('private_project_image', project_id=project.id) }}"
+                class="detail-image"
+                alt="AI 生成圖片"
+            >
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ========================= -->
+    <!-- 原始主題 -->
+    <!-- ========================= -->
+
+    <div class="detail-section">
+
+        <h2>
+            💡 原始主題
+        </h2>
+
+        <p>
+            {{ project.topic }}
+        </p>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- 文案 -->
+    <!-- ========================= -->
+
+    <div class="detail-section">
+
+        <h2>
+            ✍️ 文案
+        </h2>
+
+        <p class="caption">
+            {{ project.caption }}
+        </p>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- CTA -->
+    <!-- ========================= -->
+
+    <div class="detail-section">
+
+        <h2>
+            🎯 CTA
+        </h2>
+
+        <p>
+            {{ project.cta }}
+        </p>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- Hashtag -->
+    <!-- ========================= -->
+
+    <div class="detail-section">
+
+        <h2>
+            #️⃣ Hashtag
+        </h2>
+
+        <div class="hashtag-list">
+
+            {% for hashtag in hashtags %}
+
+                <span>
+                    {{ hashtag }}
+                </span>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- 圖片 Prompt -->
+    <!-- ========================= -->
+
+    <div class="detail-section">
+
+        <details>
+
+            <summary>
+                🎨 查看 AI 圖片 Prompt
+            </summary>
+
+            <p class="prompt-text">
+                {{ project.image_prompt }}
+            </p>
+
+        </details>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- 操作按鈕 -->
+    <!-- ========================= -->
+
+    <div class="project-actions">
+
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'regenerate_content',
+                project_id=project.id
+            ) }}"
+        >
+        
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+
+            <button
+                type="submit"
+                class="secondary-button"
+            >
+                🔄 重新生成文案
+            </button>
+
+        </form>
+
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'regenerate_image',
+                project_id=project.id
+            ) }}"
+        >
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+
+            <button
+                type="submit"
+                class="secondary-button"
+            >
+                🖼️ 重新生成圖片
+            </button>
+
+        </form>
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'generate_variants',
+                project_id=project.id
+            ) }}"
+            onsubmit="
+                document.getElementById(
+                    'loading-overlay'
+                ).style.display = 'flex';
+            "
+        >
+        
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+        
+            <button
+                type="submit"
+                class="secondary-button"
+            >
+                🌐 產生多平台版本
+            </button>
+        
+        </form>
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'delete_project',
+                project_id=project.id
+            ) }}"
+            onsubmit="
+                return confirm(
+                    '確定要刪除這個作品嗎？'
+                );
+            "
+        >
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+
+            <button
+                type="submit"
+                class="delete-button"
+            >
+                🗑️ 刪除作品
+            </button>
+
+        </form>
+
+
+    </div>
+
+    {% if variants %}
+    
+    
+    <div class="detail-section platform-variants">
+    
+    
+        <h2>
+            🌐 多平台內容
+        </h2>
+    
+    
+        <div class="variant-grid">
+    
+    
+            {% for variant in variants %}
+    
+    
+                <div class="variant-card">
+    
+    
+                    <div class="variant-header">
+    
+                        <h3>
+                            {{ variant.platform }}
+                        </h3>
+    
+                    </div>
+    
+    
+                    <h4>
+                        {{ variant.title }}
+                    </h4>
+    
+    
+                    <p class="caption">
+                        {{ variant.caption }}
+                    </p>
+    
+    
+                    <div class="variant-cta">
+    
+                        <strong>
+                            🎯 CTA
+                        </strong>
+    
+                        <p>
+                            {{ variant.cta }}
+                        </p>
+    
+                    </div>
+    
+    
+                    <div class="hashtag-list">
+    
+    
+                        {% for hashtag in variant.hashtags %}
+    
+                            <span>
+                                {{ hashtag }}
+                            </span>
+    
+                        {% endfor %}
+    
+    
+                    </div>
+    
+    
+                </div>
+    
+    
+            {% endfor %}
+    
+    
+        </div>
+    
+    
+    </div>
+    
+    
+    {% endif %}
+
+</div>
+
+<div
+    id="loading-overlay"
+    class="loading-overlay"
+>
+
+    <div class="loading-box">
+
+        <div class="spinner"></div>
+
+        <h2>
+            AI 正在轉換內容
+        </h2>
+
+        <p>
+            正在建立不同社群平台版本...
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>
