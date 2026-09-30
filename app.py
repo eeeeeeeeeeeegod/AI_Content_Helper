@@ -4,6 +4,7 @@ from flask import (
     request,
     url_for,
     redirect,
+    send_file,
     send_from_directory,
     abort
 )
@@ -17,6 +18,11 @@ import json
 import base64
 import uuid
 import numpy as np
+
+import io
+import boto3
+
+from botocore.exceptions import ClientError
 
 from datetime import datetime
 
@@ -61,6 +67,53 @@ if not api_key:
         "找不到 OPENAI_API_KEY，請確認 .env"
     )
 
+# ============================================
+# Cloudflare R2
+# ============================================
+
+R2_ACCOUNT_ID = os.getenv(
+    "R2_ACCOUNT_ID"
+)
+
+R2_ACCESS_KEY_ID = os.getenv(
+    "R2_ACCESS_KEY_ID"
+)
+
+R2_SECRET_ACCESS_KEY = os.getenv(
+    "R2_SECRET_ACCESS_KEY"
+)
+
+R2_BUCKET_NAME = os.getenv(
+    "R2_BUCKET_NAME"
+)
+
+
+R2_ENABLED = all([
+    R2_ACCOUNT_ID,
+    R2_ACCESS_KEY_ID,
+    R2_SECRET_ACCESS_KEY,
+    R2_BUCKET_NAME
+])
+
+
+if R2_ENABLED:
+
+    R2_ENDPOINT = (
+        f"https://{R2_ACCOUNT_ID}"
+        ".r2.cloudflarestorage.com"
+    )
+
+    r2_client = boto3.client(
+        "s3",
+        endpoint_url=R2_ENDPOINT,
+        aws_access_key_id=R2_ACCESS_KEY_ID,
+        aws_secret_access_key=R2_SECRET_ACCESS_KEY,
+        region_name="auto"
+    )
+
+else:
+
+    r2_client = None
 
 # ============================================
 # 2. OpenAI Client
@@ -1397,10 +1450,139 @@ Important requirements:
 
     return final_prompt
 
+# ============================================
+# 圖片儲存
+# ============================================
+
+def save_generated_image(
+    image_bytes,
+    user_id
+):
+
+    filename = (
+        f"{uuid.uuid4().hex}.png"
+    )
+
+    # ========================================
+    # Cloudflare R2
+    # ========================================
+
+    if R2_ENABLED:
+
+        object_key = (
+            f"users/{user_id}/{filename}"
+        )
+
+        r2_client.put_object(
+            Bucket=R2_BUCKET_NAME,
+            Key=object_key,
+            Body=image_bytes,
+            ContentType="image/png"
+        )
+
+        print(
+            "R2 圖片上傳成功：",
+            object_key
+        )
+
+        return object_key
+
+
+    # ========================================
+    # Local fallback
+    # ========================================
+
+    filepath = os.path.join(
+        GENERATED_FOLDER,
+        filename
+    )
+
+    with open(
+        filepath,
+        "wb"
+    ) as f:
+
+        f.write(
+            image_bytes
+        )
+
+    print(
+        "本機圖片儲存成功：",
+        filename
+    )
+
+    return filename
+
+# ============================================
+# 刪除儲存圖片
+# ============================================
+
+def delete_stored_image(
+    image_key
+):
+
+    if not image_key:
+        return
+
+
+    # ========================================
+    # Cloudflare R2 圖片
+    # ========================================
+
+    if (
+        R2_ENABLED
+        and "/" in image_key
+    ):
+
+        try:
+
+            r2_client.delete_object(
+                Bucket=R2_BUCKET_NAME,
+                Key=image_key
+            )
+
+            print(
+                "R2 圖片刪除成功：",
+                image_key
+            )
+
+        except ClientError as e:
+
+            print(
+                "R2 圖片刪除失敗：",
+                e
+            )
+
+        return
+
+
+    # ========================================
+    # 舊版 Local 圖片
+    # ========================================
+
+    filepath = os.path.join(
+        GENERATED_FOLDER,
+        image_key
+    )
+
+    if os.path.isfile(
+        filepath
+    ):
+
+        os.remove(
+            filepath
+        )
+
+        print(
+            "本機圖片刪除成功：",
+            image_key
+        )
+
 def generate_image(
     image_prompt,
     image_size,
-    image_quality
+    image_quality,
+    user_id
 ):
 
     print("開始產生 AI 圖片...")
@@ -1440,34 +1622,19 @@ def generate_image(
     )
 
 
-    filename = (
-        f"{uuid.uuid4().hex}.png"
+    image_filename = save_generated_image(
+        image_bytes,
+        user_id
     )
-
-
-    filepath = os.path.join(
-        GENERATED_FOLDER,
-        filename
-    )
-
-
-    with open(
-        filepath,
-        "wb"
-    ) as f:
-
-        f.write(
-            image_bytes
-        )
 
 
     print(
         "圖片生成完成：",
-        filename
+        image_filename
     )
 
 
-    return filename
+    return image_filename
 
 # ============================================
 # HTTP Security Headers
@@ -1758,7 +1925,9 @@ def index():
             
                         image_size,
             
-                        image_quality
+                        image_quality,
+                        
+                        user_id=current_user.id
             
                     )
             
@@ -1995,18 +2164,84 @@ def private_project_image(project_id):
         .first_or_404()
     )
 
-    # 作品沒有圖片
+    # 沒有圖片
     if not project.image_filename:
         abort(404)
 
-    # 從私人資料夾讀取圖片
+    image_key = project.image_filename
+
+
+    # ========================================
+    # Cloudflare R2 圖片
+    # ========================================
+
+    if (
+        R2_ENABLED
+        and "/" in image_key
+    ):
+
+        try:
+
+            result = r2_client.get_object(
+                Bucket=R2_BUCKET_NAME,
+                Key=image_key
+            )
+
+            image_bytes = (
+                result["Body"].read()
+            )
+
+            content_type = result.get(
+                "ContentType",
+                "image/png"
+            )
+
+        except ClientError as e:
+
+            print(
+                "R2 圖片讀取失敗：",
+                e
+            )
+
+            error_code = (
+                e.response
+                .get("Error", {})
+                .get("Code")
+            )
+
+            if error_code in (
+                "NoSuchKey",
+                "404"
+            ):
+                abort(404)
+
+            raise
+
+
+        response = send_file(
+            io.BytesIO(image_bytes),
+            mimetype=content_type
+        )
+
+        response.headers[
+            "Cache-Control"
+        ] = "private, no-store"
+
+        return response
+
+
+    # ========================================
+    # 舊版 Local 圖片
+    # ========================================
+
     response = send_from_directory(
         GENERATED_FOLDER,
-        project.image_filename
+        image_key
     )
 
-    # 避免瀏覽器及中間快取長期保存私人圖片
-    response.headers["Cache-Control"] = "private, no-store"
+    response.headers[
+        "Cache-Control"
+    ] = "private, no-store"
 
     return response
 
@@ -2266,7 +2501,9 @@ def regenerate_image(project_id):
             or "1024x1024",
 
             project.image_quality
-            or "low"
+            or "low",
+            
+            user_id=current_user.id
 
         )
 
@@ -2287,25 +2524,9 @@ def regenerate_image(project_id):
         # 刪除舊圖片
         # -------------------------
 
-        if old_filename:
-
-            old_filepath = os.path.join(
-
-                GENERATED_FOLDER,
-
-                old_filename
-
-            )
-
-
-            if os.path.exists(
-                old_filepath
-            ):
-
-                os.remove(
-                    old_filepath
-                )
-
+        delete_stored_image(
+            old_filename
+        )
 
         print(
             "重新生成圖片成功，Project ID：",
@@ -2385,24 +2606,9 @@ def delete_project(project_id):
     # 圖片檔案刪除
     # -------------------------
 
-    if image_filename:
-
-        filepath = os.path.join(
-
-            GENERATED_FOLDER,
-
-            image_filename
-
-        )
-
-
-        if os.path.exists(
-            filepath
-        ):
-
-            os.remove(
-                filepath
-            )
+    delete_stored_image(
+        image_filename
+    )
 
 
     print(

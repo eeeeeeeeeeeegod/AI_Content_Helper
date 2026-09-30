@@ -10,3 +10,4 @@ pypdf
 numpy
 gunicorn
 psycopg[binary]
+boto3
