@@ -43,7 +43,7 @@ from werkzeug.security import (
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+
 
 # ============================================
 # 1. 讀取環境變數
@@ -131,14 +131,52 @@ client = OpenAI(
 app = Flask(__name__)
 
 # ============================================
-# 請求次數限制：本機開發用
+# Rate Limit
 # ============================================
 
+REDIS_URL = os.getenv(
+    "REDIS_URL"
+)
+
+
+def get_client_ip():
+
+    # Render 正式環境位於 Proxy 後方
+    if IS_PRODUCTION:
+
+        forwarded_for = request.headers.get(
+            "X-Forwarded-For",
+            ""
+        )
+
+        if forwarded_for:
+
+            return (
+                forwarded_for
+                .split(",")[0]
+                .strip()
+            )
+
+    # 本機開發環境
+    return (
+        request.remote_addr
+        or "unknown"
+    )
+
+
+RATE_LIMIT_STORAGE = (
+    REDIS_URL
+    if REDIS_URL
+    else "memory://"
+)
+
+
 limiter = Limiter(
-    key_func=get_remote_address,
+    key_func=get_client_ip,
     app=app,
     default_limits=[],
-    storage_uri="memory://"
+    storage_uri=RATE_LIMIT_STORAGE,
+    strategy="fixed-window"
 )
 
 # ============================================
@@ -1663,6 +1701,8 @@ def add_security_headers(response):
 
     return response
 
+
+
 # ============================================
 # 上傳檔案過大
 # ============================================
@@ -1674,6 +1714,62 @@ def request_entity_too_large(error):
         "上傳內容過大，請確認文件大小符合限制。",
         413
     )
+
+# ============================================
+# 404：找不到頁面
+# ============================================
+
+@app.errorhandler(404)
+def page_not_found(error):
+
+    return (
+        "找不到此頁面。",
+        404
+    )
+
+
+# ============================================
+# 429：請求過於頻繁
+# ============================================
+
+@app.errorhandler(429)
+def too_many_requests(error):
+
+    return (
+        "請求過於頻繁，請稍後再試。",
+        429
+    )
+
+
+# ============================================
+# 500：伺服器錯誤
+# ============================================
+
+@app.errorhandler(500)
+def internal_server_error(error):
+
+    try:
+        db.session.rollback()
+
+    except Exception:
+        pass
+
+    return (
+        "伺服器發生錯誤，請稍後再試。",
+        500
+    )
+
+# ============================================
+# Health Check
+# ============================================
+
+@app.route("/health")
+@limiter.exempt
+def health():
+
+    return {
+        "status": "ok"
+    }, 200
 
 # ============================================
 # 9. 首頁

@@ -11,3 +11,4 @@ numpy
 gunicorn
 psycopg[binary]
 boto3
+redis
