@@ -8,7 +8,14 @@ from flask import (
     send_from_directory,
     abort
 )
-from flask_sqlalchemy import SQLAlchemy
+
+from extensions import (
+    db,
+    migrate,
+    login_manager,
+    csrf
+)
+
 from openai import OpenAI
 from dotenv import load_dotenv
 from pypdf import PdfReader
@@ -27,7 +34,6 @@ from botocore.exceptions import ClientError
 from datetime import datetime
 
 from flask_login import (
-    LoginManager,
     UserMixin,
     login_user,
     login_required,
@@ -40,8 +46,6 @@ from werkzeug.security import (
     check_password_hash
 )
 
-from flask_migrate import Migrate
-from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 
 
@@ -193,7 +197,7 @@ if not app.config["SECRET_KEY"]:
         "找不到 FLASK_SECRET_KEY，請檢查 .env"
     )
 
-csrf = CSRFProtect(app)
+csrf.init_app(app)
 
 # ============================================
 # 文件上傳限制
@@ -255,19 +259,13 @@ else:
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-db = SQLAlchemy(app)
+db.init_app(app)
 
-migrate = Migrate(
+migrate.init_app(
     app,
     db,
     render_as_batch=True
 )
-
-# ============================================
-# Flask-Login
-# ============================================
-
-login_manager = LoginManager()
 
 login_manager.init_app(app)
 
