@@ -36,7 +36,7 @@
     <div class="detail-header">
 
         <a
-            href="{{ url_for('history') }}"
+            href="{{ url_for('projects.history') }}"
             class="back-link"
         >
             ← 返回歷史作品
@@ -88,7 +88,7 @@
             </h2>
 
             <img
-                src="{{ url_for('private_project_image', project_id=project.id) }}"
+                src="{{ url_for('projects.private_project_image', project_id=project.id) }}"
                 class="detail-image"
                 alt="AI 生成圖片"
             >
@@ -205,7 +205,7 @@
         <form
             method="POST"
             action="{{ url_for(
-                'regenerate_content',
+                'projects.regenerate_content',
                 project_id=project.id
             ) }}"
         >
@@ -229,7 +229,7 @@
         <form
             method="POST"
             action="{{ url_for(
-                'regenerate_image',
+                'projects.regenerate_image',
                 project_id=project.id
             ) }}"
         >
@@ -252,7 +252,7 @@
         <form
             method="POST"
             action="{{ url_for(
-                'generate_variants',
+                'projects.generate_variants',
                 project_id=project.id
             ) }}"
             onsubmit="
@@ -280,7 +280,7 @@
         <form
             method="POST"
             action="{{ url_for(
-                'delete_project',
+                'projects.delete_project',
                 project_id=project.id
             ) }}"
             onsubmit="

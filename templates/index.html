@@ -44,7 +44,7 @@
     
         <form
             method="POST"
-            action="{{ url_for('logout') }}"
+            action="{{ url_for('auth.logout') }}"
         >
         
             <input
@@ -70,14 +70,14 @@
 
 
     <a
-        href="{{ url_for('history') }}"
+        href="{{ url_for('projects.history') }}"
         class="history-link"
     >
         🗂️ 查看歷史作品
     </a>
     
     <a
-        href="{{ url_for('brands') }}"
+        href="{{ url_for('brands.brands') }}"
         class="history-link"
     >
         🏷️ 品牌管理

@@ -31,7 +31,7 @@
 
 
     <a
-        href="{{ url_for('brands') }}"
+        href="{{ url_for('brands.brands') }}"
         class="back-link"
     >
         ← 返回品牌管理
@@ -58,7 +58,7 @@
     <form
         method="POST"
         action="{{ url_for(
-            'upload_brand_document',
+            'brands.upload_brand_document',
             brand_id=brand.id
         ) }}"
         enctype="multipart/form-data"
