@@ -672,10 +672,8 @@ def regenerate_content(project_id):
                     409
                 )
 
-            # ========================================
-            # 3. 建立品牌基本資料
-            # ========================================
 
+# 3. 建立品牌基本資料
             brand_context = f"""
 品牌名稱：
 {brand.name}
@@ -702,10 +700,8 @@ def regenerate_content(project_id):
 {brand.notes or "無"}
 """
 
-            # ========================================
-            # 4. 檢索品牌知識庫
-            # ========================================
-
+# 4. 檢索品牌知識庫
+ 
             search_query = f"""
 主題：
 {project.topic}
@@ -729,9 +725,7 @@ def regenerate_content(project_id):
                 bool(rag_context)
             )
 
-        # ============================================
-        # 5. 呼叫 AI 重新生成文案
-        # ============================================
+# 5. 呼叫 AI 重新生成文案
 
         result = generate_content(
             client,
@@ -742,10 +736,6 @@ def regenerate_content(project_id):
             brand_context,
             rag_context
         )
-
-        # 更新 Database
-        project.title = result["title"]
-
 
         # 更新 Database
         project.title = result["title"]
@@ -800,9 +790,8 @@ def regenerate_content(project_id):
 
     )
 
-# ============================================
+
 # 重新生成圖片
-# ============================================
 
 @projects_bp.route(
     "/project/<int:project_id>/regenerate-image",
@@ -915,9 +904,8 @@ def regenerate_image(project_id):
 
     )
 
-# ============================================
+
 # 刪除作品
-# ============================================
 
 @projects_bp.route(
     "/project/<int:project_id>/delete",
@@ -940,9 +928,7 @@ def delete_project(project_id):
         project.image_filename
     )
 
-    # =================================
     # 先刪除作品的多平台版本
-    # =================================
     
     ProjectVariant.query.filter_by(
         project_id=project.id
@@ -980,9 +966,8 @@ def delete_project(project_id):
         url_for(".history")
     )
 
-# ============================================
+
 # 產生多平台版本
-# ============================================
 
 @projects_bp.route(
     "/project/<int:project_id>/generate-variants",

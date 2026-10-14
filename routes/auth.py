@@ -202,9 +202,8 @@ def login():
         )
 
 
-        # =================================
+
         # 從 Database 找使用者
-        # =================================
 
         user = (
             User.query
@@ -214,24 +213,8 @@ def login():
             .first()
         )
 
-        # ============================================
-        # 登入問題檢查
-        # ============================================
-        
-        print("是否找到使用者：", user is not None)
-        
-        if user is not None:
-        
-            password_correct = check_password_hash(
-                user.password_hash,
-                password
-            )
-        
-            print("密碼驗證結果：", password_correct)
 
-        # =================================
         # 驗證帳號與密碼
-        # =================================
 
         if (
             user is None
@@ -246,20 +229,17 @@ def login():
 
         else:
 
-            # =============================
+ 
             # 登入成功
-            # =============================
 
             login_user(
                 user
             )
 
-
             print(
                 "使用者登入成功，ID：",
                 user.id
             )
-
 
             return redirect(
                 url_for("projects.index")
@@ -274,9 +254,8 @@ def login():
 
     )
 
-# ============================================
+
 # 使用者登出
-# ============================================
 
 @auth_bp.route(
     "/logout",
