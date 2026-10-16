@@ -1,10 +1,18 @@
-from datetime import datetime
+from datetime import (
+    datetime,
+    timezone
+)
 
 from flask_login import UserMixin
 
 from extensions import db
 
+def utc_now():
 
+    return (
+        datetime.now(timezone.utc)
+        .replace(tzinfo=None)
+    )
 
 class User(db.Model, UserMixin):
     id = db.Column(
@@ -25,7 +33,7 @@ class User(db.Model, UserMixin):
 
     created_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow
+        default=utc_now
     )
 
 
@@ -106,7 +114,7 @@ class Project(db.Model):
 
     created_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow
+        default=utc_now
     )
     
 
@@ -160,7 +168,7 @@ class Brand(db.Model):
 
     created_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow
+        default=utc_now
     )
     
 
@@ -184,7 +192,7 @@ class BrandDocument(db.Model):
 
     created_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow
+        default=utc_now
     )
 
 
@@ -254,5 +262,5 @@ class ProjectVariant(db.Model):
 
     created_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow
+        default=utc_now
     )
